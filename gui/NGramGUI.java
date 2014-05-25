@@ -12,7 +12,7 @@ import java.awt.event.ActionListener;
 public class NGramGUI extends JFrame implements ActionListener {
 
 	private static final long serialVersionUID = -7031008862559936404L;
-	private static final int MAX_RESULTS = 5;
+	//private static final int MAX_RESULTS = 5;
 	private JPanel topPanel;
 
 	private JTextField txtPhrases;
@@ -93,27 +93,41 @@ public class NGramGUI extends JFrame implements ActionListener {
 			chartPanel.setVisible(true);
 			textPanel.setVisible(false);
 		} else if (buttonString.equals("Search")) {
-			String[] phrases = txtPhrases.getText().split(",");
-            int numEntries = Integer.valueOf(txtNumEntries.getText());
+			String resultString = "";
+			if (txtPhrases.getText() == null || txtPhrases.getText().equals(""))  {
+				resultString += "Nothing to query from, Please enter some Words or Phrases";
+				//((ResultPanel) textPanel).updateText(resultString);
+			} else if (txtNumEntries.getText() == null || txtNumEntries.getText().equals("")) {
+				resultString += "Enter some number for output";
+				//((ResultPanel) textPanel).updateText(resultString);
+			} else {
+				String[] phrases = txtPhrases.getText().split(",");
+				int numEntries = Integer.valueOf(txtNumEntries.getText());
+				if (phrases.length > 5) {
+					resultString += "Too many";
+				} else if (numEntries > 5) {
+					resultString += "Too many Queries";
+				} else {
+					NGramStore nGramStore = new NGramStore();
+					for (String context : phrases) {
+						resultString += "NGram Results for Query: " + context+ "\n";
+						try {
+							if (nGramStore.getNGramsFromService(context,numEntries)) {
+								resultString += nGramStore.getNGram(context).toString();
+							} else {
+								resultString += "No results were returned for this phrase.";
+							}
+						} catch (NGramException nex) {
+							resultString += "No results were returned for this phrase.";
+						}
+					}
+				}
+			}
 
-            String resultString = "";
-            NGramStore nGramStore = new NGramStore();
-            for(String context : phrases) {
-                resultString += "NGram Results for Query: " + context +"\n";
-                try {
-                    if(nGramStore.getNGramsFromService(context, numEntries)) {
-                        resultString += nGramStore.getNGram(context).toString();
-                    } else {
-                        resultString += "No results were returned for this phrase.";
-                    }
-                } catch (NGramException nex) {
-                    resultString += "No results were returned for this phrase.";
-                }
-            }
+			((ResultPanel) textPanel).updateText(resultString);
 
-            ((ResultPanel)textPanel).updateText(resultString);
+		}
 			
 	}
 
-}
 }
